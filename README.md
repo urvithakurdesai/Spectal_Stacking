@@ -80,3 +80,61 @@ The final notebook figures compare compact, extended, and intermediate optical s
 - The active optical continuum function used in the fit behaves as a single power law, even though the fit interface still carries separate blue and red continuum parameters.
 - The notebook writes `JADES Emission Lines/new_lines_table_edit_urvi.csv` as a side effect.
 - The last UV comparison cells plot UV stack variables such as `wave_uv_compact`, `model_uv_mean_compact`, and `LAM_NIV` that are not defined inside this notebook. Those saved figures therefore depend on prior kernel state or on work from the UV notebook, and are not self-contained.
+
+## UV Notebook
+
+`Spectral Stacking JADES DR4 - DR5 Morphology UV.ipynb` uses the same DR4-based catalog and morphology framework, but not the exact same cleaned sample as the optical notebook.
+
+### Saved-Run UV Sample Construction
+
+In the saved UV run, the notebook:
+
+- starts from the same `5190` DR4 sources
+- uses the same F115W and F444W crossmatched tables (`4647` and `4927` rows)
+- removes sources with `z_Spec_flag` equal to `D` or `E`
+- requires finite combined `[O III] 5007` flux and error
+- removes only three incomplete IDs before file matching: `1010202`, `113461`, and `1011601`
+- matches the cleaned catalog to unique PRISM files, leaving `2897` spectra
+- applies the science cut `4 <= z <= 7`, leaving `640` galaxies
+
+The saved UV sample spans about `86.7` to `7886` pc in physical radius, with a mean physical radius of about `1018` pc.
+
+The mass-corrected size split yields:
+
+- `104` compact
+- `432` intermediate
+- `104` extended
+
+The saved output reports `alpha_z = -1.22 +/- 0.23` for the size-redshift trend.
+
+### UV Stacking Workflow
+
+For each morphology bin, the UV notebook:
+
+- reads the `EXTRACT3PIX1D` spectrum from FITS extension `2`
+- shifts each spectrum to the rest frame with `z_Spec_1`
+- builds a PRISM-resolution-matched rest-frame wavelength grid from `Line Spread Functions/meanlsf_clear_prism.csv`
+- normalizes each spectrum using the continuum window around `0.20-0.22 um`
+- analyzes the UV window `0.14-0.23 um`
+- builds median stacks with uncertainties from `1000` Monte Carlo perturbations
+- builds inverse-variance-weighted mean stacks after `5 sigma` clipping
+- fits the stacked spectra with LSF-aware Gaussian line models plus a UV power-law continuum
+
+The UV line model includes:
+
+- `N IV]`
+- `C IV`
+- `He II`
+- `O III]`
+- `N III]`
+- `C III]`
+
+The notebook also includes an N-1 jackknife consistency check for the compact-stack sample and prints formal line S/N values for the fitted UV stacks.
+
+### UV Notes And Caveats
+
+- The code still uses `f_contsub_*` variable names, but the explicit continuum-subtraction step is commented out in the median-stack preparation (`f_contsub = f`).
+- In practice, the saved UV stacks are closer to normalized UV spectra than strictly continuum-subtracted spectra.
+- The `weird_sources` section is empty after the notebook applies `4 <= z <= 7`.
+- The notebook writes `JADES Emission Lines/new_lines_table_edit_urvi.csv` as a side effect.
+- The final UV figures compare compact versus extended stacks, and then compact versus extended versus intermediate stacks, for both median and mean combinations.
